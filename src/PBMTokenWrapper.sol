@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 
-contract PBMTokenWrapper is IERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
+contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
     constructor() ERC1155("") {}
 
     function setURI(string memory newuri) public onlyOwner {
