@@ -6,9 +6,27 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "./PBMLogic.sol";
+import "./PBMTokenWrapper";
 
 contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
-    constructor() ERC1155("") {}
+    address private _pbmLogicAddress;
+    address private _pbmTokenManagerAddress;
+    address private _underlyingTokenAddress;
+    uint private _pbmExpiry;
+    
+    constructor(
+        address pbmLogicAddress_, 
+        address pbmTokenManagerAddress_, 
+        address underlyingTokenAddress_,
+        uint pbmExpiry_
+    ) ERC1155("") {
+        _pbmLogicAddress = pbmLogicAddress_;
+        _pbmTokenManagerAddress = pbmTokenManagerAddress_;
+        _underlyingTokenAddress = underlyingTokenAddress_;
+        _pbmExpiry = pbmExpiry_;
+    }
+
 
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
@@ -26,7 +44,13 @@ contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155
         public
         onlyOwner
     {
+        
+        // Call TokenManager's increaseSupply
+        pbmLogicContract = new PBMLogic(_pbmLogicAddress);
+        pbmLogicContract.increaseSupply(id, amount);
+
         _mint(account, id, amount, data);
+        
     }
 
     function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
