@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract PBMTokenManager is Ownable {
 
     // Public Variables
-    mapping(uint => TokenType) private _tokenIdToTokenTypeMapping;
     uint public pbmExpiry;
 
     // Private Variables
@@ -21,8 +20,8 @@ contract PBMTokenManager is Ownable {
         string tokenURI;
     }
 
-    constructor() {
-        
+    constructor(uint _pbmExpiry) {
+        pbmExpiry = _pbmExpiry;
     }
 
     function createTokenType(
@@ -30,15 +29,34 @@ contract PBMTokenManager is Ownable {
         uint amount, // mint amount
         uint tokenExpiry, // expiry date in unix timestamp
         string calldata creator, 
-        string calldata tokenURI, 
-        uint _pbmExpiry
-        ) public onlyOwner {
+        string calldata tokenURI
+        ) 
+        public 
+        onlyOwner 
+        returns (uint256) {
         TokenType memory newTokenType = TokenType(denomination, amount, tokenExpiry, creator, tokenURI);
         _tokenTypes.push(newTokenType);
-        pbmExpiry = _pbmExpiry;
+        return _tokenTypes.length; // this is the token id
     }
 
-    function getTokenTypes() public view returns (TokenType[] memory){
-        return _tokenTypes;
+    function getTokenType(uint tokenId) public view returns (TokenType memory){
+        return _tokenTypes[tokenId];
+    }
+
+    function isTokenExpired(uint tokenId) public view returns (bool) {
+        return block.timestamp < _tokenTypes[tokenId].expiryDate;
+    }
+
+    function isPbmExpired() public view returns (bool) {
+        return block.timestamp < pbmExpiry;   
+    }
+
+    function increaseSupply(uint tokenId, uint amount) public onlyOwner {
+        _tokenTypes[tokenId].amount += amount;
+    }
+
+    function decreaseSupply(uint tokenId, uint amount) public onlyOwner {
+        require(_tokenTypes[tokenId].amount >= amount);
+        _tokenTypes[tokenId].amount -= amount;
     }
 }
