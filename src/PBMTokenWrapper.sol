@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "./PBMLogic.sol";
-import "./PBMTokenWrapper";
+import "./PBMTokenManager.sol";
 
 contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
     address private _pbmLogicAddress;
