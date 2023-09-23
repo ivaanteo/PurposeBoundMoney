@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
@@ -10,23 +11,36 @@ import "./PBMLogic.sol";
 import "./PBMTokenManager.sol";
 
 contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
-    address private _pbmLogicAddress;
-    address private _pbmTokenManagerAddress;
-    address private _underlyingTokenAddress;
-    uint private _pbmExpiry;
     
+    PBMLogic pbmLogicContract; 
+    PBMTokenManager pbmTokenManagerContract;
+    ERC20 underlyingTokenContract;
+
+    uint private _pbmExpiry;
+
     constructor(
         address pbmLogicAddress_, 
         address pbmTokenManagerAddress_, 
         address underlyingTokenAddress_,
         uint pbmExpiry_
     ) ERC1155("") {
-        _pbmLogicAddress = pbmLogicAddress_;
-        _pbmTokenManagerAddress = pbmTokenManagerAddress_;
-        _underlyingTokenAddress = underlyingTokenAddress_;
+        setPbmLogicAddress(pbmLogicAddress_);
+        setPbmTokenManagerAddress(pbmTokenManagerAddress_);
+        setUnderlyingTokenAddress(underlyingTokenAddress_);
         _pbmExpiry = pbmExpiry_;
     }
 
+    function setPbmLogicAddress(address pbmLogicAddress_) public onlyOwner {
+        pbmLogicContract = PBMLogic(pbmLogicAddress_);
+    }
+
+    function setPbmTokenManagerAddress(address pbmTokenManagerAddress_) public onlyOwner {
+        pbmTokenManagerContract = PBMTokenManager(pbmTokenManagerAddress_);
+    }
+
+    function setUnderlyingTokenAddress(address underlyingTokenAddress_) public onlyOwner {
+        underlyingTokenContract = ERC20(underlyingTokenAddress_);
+    }
 
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
@@ -46,9 +60,6 @@ contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155
     {
         
         // Call TokenManager's increaseSupply
-        pbmLogicContract = new PBMLogic(_pbmLogicAddress);
-        pbmLogicContract.increaseSupply(id, amount);
-
         _mint(account, id, amount, data);
         
     }
