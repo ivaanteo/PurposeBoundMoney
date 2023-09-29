@@ -3,6 +3,13 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+struct TokenType {
+        uint denomination;
+        uint amount; // total supply
+        uint256 expiryDate;
+        string creator;
+        string tokenURI;
+    }
 
 contract PBMTokenManager is Ownable {
 
@@ -11,14 +18,6 @@ contract PBMTokenManager is Ownable {
 
     // Private Variables
     TokenType[] private _tokenTypes;
-
-    struct TokenType {
-        uint denomination;
-        uint amount; // total supply
-        uint256 expiryDate;
-        string creator;
-        string tokenURI;
-    }
 
     constructor(uint _pbmExpiry) {
         pbmExpiry = _pbmExpiry;
@@ -58,5 +57,9 @@ contract PBMTokenManager is Ownable {
     function decreaseSupply(uint tokenId, uint amount) public onlyOwner {
         require(_tokenTypes[tokenId].amount >= amount);
         _tokenTypes[tokenId].amount -= amount;
+    }
+
+    function getTokenValue(uint tokenId, uint amount) public view returns (uint) {
+        return _tokenTypes[tokenId].denomination * amount;
     }
 }

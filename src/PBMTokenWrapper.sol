@@ -18,6 +18,14 @@ contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155
 
     uint private _pbmExpiry;
 
+    modifier onlyTransferable() {
+        require(
+            pbmLogicContract.isTransferable(), 
+            "Token is not transferable"
+        );
+        _;
+    }
+
     constructor(
         address pbmLogicAddress_, 
         address pbmTokenManagerAddress_, 
@@ -53,6 +61,7 @@ contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155
     function unpause() public onlyOwner {
         _unpause();
     }
+        
 
     function mint(address account, uint256 id, uint256 amount, bytes memory data)
         public
@@ -78,4 +87,63 @@ contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155
     {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public virtual override onlyTransferable {
+        require(
+            from == _msgSender() || isApprovedForAll(from, _msgSender()),
+            "ERC1155: caller is not token owner or approved"
+        );
+        if(pbmLogicContract.isAddressWhitelisted(to)) {
+            // redemption logic
+            uint256[] memory ids = new uint[](1);
+            ids[0] = id;
+            uint256[] memory amounts = new uint[](1);
+            amounts[0] = amount;
+            _redeem(from, to, ids, amounts);
+        } else {
+            _safeTransferFrom(from, to, id, amount, data);
+        }
+    }
+
+    function safeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) public virtual override onlyTransferable {
+        require(
+            from == _msgSender() || isApprovedForAll(from, _msgSender()),
+            "ERC1155: caller is not token owner or approved"
+        );
+        _safeBatchTransferFrom(from, to, ids, amounts, data);
+    }
+
+    function _redeem(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) private {
+        require(ids.length == amounts.length, "Number of IDs does not match amounts");
+        require(_pbmExpiry > block.timestamp, "PBM has expired"); // pbm expiry
+        uint totalValue;
+        for (uint i = 0; i < ids.length; i++) {
+            require(!pbmTokenManagerContract.isTokenExpired(ids[i])); // token expiry   
+            totalValue += pbmTokenManagerContract.getTokenValue(ids[i], amounts[i]);
+        }
+        underlyingTokenContract.transfer(to, totalValue);
+        burnBatch(from, ids, amounts);
+        for (uint i = 0; i < ids.length; i++) {
+            pbmTokenManagerContract.decreaseSupply(ids[i], amounts[i]);
+        }
+    }
+
+
 }
