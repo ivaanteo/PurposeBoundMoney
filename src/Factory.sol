@@ -11,7 +11,11 @@ contract Factory {
   address public pbmTokenWrapperAddress;
   address public pbmLogicAddress;
   
-  constructor(uint _pbmExpiry, bool _isTransferable, address underlyingTokenAddress) {
+  constructor(
+    uint _pbmExpiry, 
+    bool _isTransferable, 
+    address underlyingTokenAddress
+    ) {
     pbmTokenManagerAddress = address(new PBMTokenManager(_pbmExpiry));
     pbmLogicAddress = address(new PBMLogic(_isTransferable));
     pbmTokenWrapperAddress = address(new PBMTokenWrapper(

@@ -32,21 +32,21 @@ contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155
         address underlyingTokenAddress_,
         uint pbmExpiry_
     ) ERC1155("") {
-        setPbmLogicAddress(pbmLogicAddress_);
-        setPbmTokenManagerAddress(pbmTokenManagerAddress_);
-        setUnderlyingTokenAddress(underlyingTokenAddress_);
+        setPbmLogic(pbmLogicAddress_);
+        setPbmTokenManager(pbmTokenManagerAddress_);
+        setUnderlyingToken(underlyingTokenAddress_);
         _pbmExpiry = pbmExpiry_;
     }
 
-    function setPbmLogicAddress(address pbmLogicAddress_) public onlyOwner {
+    function setPbmLogic(address pbmLogicAddress_) public onlyOwner {
         pbmLogicContract = PBMLogic(pbmLogicAddress_);
     }
 
-    function setPbmTokenManagerAddress(address pbmTokenManagerAddress_) public onlyOwner {
+    function setPbmTokenManager(address pbmTokenManagerAddress_) public onlyOwner {
         pbmTokenManagerContract = PBMTokenManager(pbmTokenManagerAddress_);
     }
 
-    function setUnderlyingTokenAddress(address underlyingTokenAddress_) public onlyOwner {
+    function setUnderlyingToken(address underlyingTokenAddress_) public onlyOwner {
         underlyingTokenContract = ERC20(underlyingTokenAddress_);
     }
 

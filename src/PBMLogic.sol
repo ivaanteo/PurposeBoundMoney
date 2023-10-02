@@ -23,4 +23,8 @@ contract PBMLogic is Ownable {
     function isAddressWhitelisted(address recipient) public view returns (bool) {
         return _whitelist[recipient];
     }
+
+    function setTransferable(bool _isTransferable) public onlyOwner {
+        isTransferable = _isTransferable;
+    }
 }
