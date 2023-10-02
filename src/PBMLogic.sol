@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-
-contract PBMLogic is Ownable {
+contract PBMLogic {
     mapping (address => bool) private _whitelist;
     bool public isTransferable;
+    address public owner;
 
-    constructor(bool _isTransferable) {
-        isTransferable = _isTransferable;
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function.");
+        _;
     }
 
+    constructor(bool _isTransferable, address _owner) {
+        owner = _owner;
+        isTransferable = _isTransferable;
+    }
 
     function addToWhitelist(address recipient) public onlyOwner {
         _whitelist[recipient] = true;

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-
 struct TokenType {
         uint denomination;
         uint amount; // total supply
@@ -11,7 +9,7 @@ struct TokenType {
         string tokenURI;
     }
 
-contract PBMTokenManager is Ownable {
+contract PBMTokenManager {
 
     // Public Variables
     uint public pbmExpiry;
@@ -19,8 +17,16 @@ contract PBMTokenManager is Ownable {
     // Private Variables
     TokenType[] private _tokenTypes;
 
-    constructor(uint _pbmExpiry) {
+    address public owner;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function.");
+        _;
+    }
+
+    constructor(uint _pbmExpiry, address _owner) {
         pbmExpiry = _pbmExpiry;
+        owner = _owner;
     }
 
     function createTokenType(

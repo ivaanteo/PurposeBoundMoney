@@ -16,13 +16,16 @@ contract Factory {
     bool _isTransferable, 
     address underlyingTokenAddress
     ) {
-    pbmTokenManagerAddress = address(new PBMTokenManager(_pbmExpiry));
-    pbmLogicAddress = address(new PBMLogic(_isTransferable));
-    pbmTokenWrapperAddress = address(new PBMTokenWrapper(
-      pbmLogicAddress,
-      pbmTokenManagerAddress,
-      underlyingTokenAddress,
-      _pbmExpiry
-    ));
+    pbmTokenManagerAddress = address(new PBMTokenManager(_pbmExpiry, msg.sender));
+    pbmLogicAddress = address(new PBMLogic(_isTransferable, msg.sender));
+    pbmTokenWrapperAddress = address(
+      new PBMTokenWrapper(
+        pbmLogicAddress,
+        pbmTokenManagerAddress,
+        underlyingTokenAddress,
+        _pbmExpiry,
+        msg.sender
+      )
+    );
   }
 }

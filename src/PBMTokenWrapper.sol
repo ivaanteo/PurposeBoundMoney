@@ -3,20 +3,20 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "./PBMLogic.sol";
 import "./PBMTokenManager.sol";
 
-contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
+contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
     
     PBMLogic pbmLogicContract; 
     PBMTokenManager pbmTokenManagerContract;
     ERC20 underlyingTokenContract;
 
     uint private _pbmExpiry;
+    address public owner;
 
     modifier onlyTransferable() {
         require(
@@ -26,16 +26,23 @@ contract PBMTokenWrapper is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155
         _;
     }
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function.");
+        _;
+    }
+
     constructor(
         address pbmLogicAddress_, 
         address pbmTokenManagerAddress_, 
         address underlyingTokenAddress_,
-        uint pbmExpiry_
+        uint pbmExpiry_,
+        address _owner
     ) ERC1155("") {
-        setPbmLogic(pbmLogicAddress_);
-        setPbmTokenManager(pbmTokenManagerAddress_);
-        setUnderlyingToken(underlyingTokenAddress_);
+        owner = _owner;
         _pbmExpiry = pbmExpiry_;
+        pbmLogicContract = PBMLogic(pbmLogicAddress_);
+        pbmTokenManagerContract = PBMTokenManager(pbmTokenManagerAddress_);
+        underlyingTokenContract = ERC20(underlyingTokenAddress_);
     }
 
     function setPbmLogic(address pbmLogicAddress_) public onlyOwner {
