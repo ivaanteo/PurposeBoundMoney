@@ -41,7 +41,7 @@ contract PBMTokenManager {
         returns (uint256) {
         TokenType memory newTokenType = TokenType(denomination, amount, tokenExpiry, creator, tokenURI);
         _tokenTypes.push(newTokenType);
-        return _tokenTypes.length; // this is the token id
+        return _tokenTypes.length-1; // this is the token id
     }
 
     function getTokenType(uint tokenId) public view returns (TokenType memory){
@@ -49,11 +49,11 @@ contract PBMTokenManager {
     }
 
     function isTokenExpired(uint tokenId) public view returns (bool) {
-        return block.timestamp < _tokenTypes[tokenId].expiryDate;
+        return block.timestamp > _tokenTypes[tokenId].expiryDate;
     }
 
     function isPbmExpired() public view returns (bool) {
-        return block.timestamp < pbmExpiry;   
+        return block.timestamp > pbmExpiry;   
     }
 
     function increaseSupply(uint tokenId, uint amount) public onlyOwner {
