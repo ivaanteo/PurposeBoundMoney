@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MockUSDC is ERC20 {
     constructor() ERC20("MockUSDC", "USDC") {
-        _mint(msg.sender, 10000 * 10 ** decimals());
+        // _mint(msg.sender, 10000 * 10 ** decimals());
     }
 
     function decimals() public view virtual override returns (uint8) {

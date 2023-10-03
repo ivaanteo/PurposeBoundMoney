@@ -31,7 +31,7 @@ contract PBMTokenManagerTest is Test {
 
     function testCreateTokenType() public {
       vm.prank(address(1));
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenManager: Only owner can call this function."));
       pbmTokenManager.createTokenType(1, 2, 3, "creator", "uri");
       
       uint id = pbmTokenManager.createTokenType(1, 2, 0, "creator", "uri");
@@ -48,21 +48,21 @@ contract PBMTokenManagerTest is Test {
       assertEq(pbmTokenManager.getTokenType(id).amount, 2);
       
       vm.prank(address(1));
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenManager: Only owner can call this function."));
       pbmTokenManager.increaseSupply(id, 3);
       
       pbmTokenManager.increaseSupply(id, 3);
       assertEq(pbmTokenManager.getTokenType(id).amount, 5);
     }
-    
+
     function testDecreaseSupply() public {
       uint id = pbmTokenManager.createTokenType(1, 2, 0, "creator", "uri");
       assertEq(pbmTokenManager.getTokenType(id).amount, 2);
       
-      vm.prank(address(1));
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenManager: Only token wrapper can call this function."));
       pbmTokenManager.decreaseSupply(id, 3);
       
+      vm.prank(address(pbmTokenWrapper));
       pbmTokenManager.decreaseSupply(id, 1);
       assertEq(pbmTokenManager.getTokenType(id).amount, 1);
     }

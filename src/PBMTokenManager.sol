@@ -18,17 +18,23 @@ contract PBMTokenManager {
     TokenType[] private _tokenTypes;
 
     address public owner;
+    address public factory;
+    address public tokenWrapperAddress;
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function.");
+        require(msg.sender == owner, "TokenManager: Only owner can call this function.");
         _;
     }
 
     constructor(uint _pbmExpiry, address _owner) {
         pbmExpiry = _pbmExpiry;
         owner = _owner;
+        factory = msg.sender;
     }
-
+    function setTokenWrapperAddress(address _tokenWrapperAddress) public {
+        require(msg.sender == factory, "TokenManager: Only factory can call this function.");
+        tokenWrapperAddress = _tokenWrapperAddress;
+    }
     function createTokenType(
         uint denomination, // 
         uint amount, // mint amount
@@ -60,7 +66,8 @@ contract PBMTokenManager {
         _tokenTypes[tokenId].amount += amount;
     }
 
-    function decreaseSupply(uint tokenId, uint amount) public onlyOwner {
+    function decreaseSupply(uint tokenId, uint amount) public {
+        require(msg.sender == tokenWrapperAddress, "TokenManager: Only token wrapper can call this function.");
         require(_tokenTypes[tokenId].amount >= amount);
         _tokenTypes[tokenId].amount -= amount;
     }

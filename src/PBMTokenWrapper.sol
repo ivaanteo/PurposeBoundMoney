@@ -21,13 +21,13 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
     modifier onlyTransferable() {
         require(
             pbmLogicContract.isTransferable(), 
-            "Token is not transferable"
+            "TokenWrapper: Token is not transferable"
         );
         _;
     }
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function.");
+        require(msg.sender == owner, "TokenWrapper: Only owner can call this function.");
         _;
     }
 
@@ -145,11 +145,11 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
         uint256[] memory ids,
         uint256[] memory amounts
     ) private {
-        require(ids.length == amounts.length, "Number of IDs does not match amounts");
-        require(_pbmExpiry > block.timestamp, "PBM has expired"); // pbm expiry
+        require(ids.length == amounts.length, "TokenWrapper: Number of IDs does not match amounts");
+        require(_pbmExpiry > block.timestamp, "TokenWrapper: PBM has expired"); // pbm expiry
         uint totalValue;
         for (uint i = 0; i < ids.length; i++) {
-            require(!pbmTokenManagerContract.isTokenExpired(ids[i]), "Token expired"); // token expiry   
+            require(!pbmTokenManagerContract.isTokenExpired(ids[i]), "TokenWrapper: Token expired"); // token expiry   
             totalValue += pbmTokenManagerContract.getTokenValue(ids[i], amounts[i]);
         }
         underlyingTokenContract.transfer(to, totalValue);

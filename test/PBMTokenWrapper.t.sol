@@ -6,7 +6,7 @@ import {Factory} from "../src/Factory.sol";
 import {PBMTokenWrapper} from "../src/PBMTokenWrapper.sol";
 import {PBMTokenManager} from "../src/PBMTokenManager.sol";
 import {PBMLogic} from "../src/PBMLogic.sol";
-import {MockUSDC} from "./MockUSDC.sol";
+import {MockUSDC} from "../src/MockUSDC.sol";
 
 contract PBMTokenWrapperTest is Test {
     Factory public factory;
@@ -16,8 +16,8 @@ contract PBMTokenWrapperTest is Test {
     MockUSDC public underlyingToken;
 
     function setUp() public {
-      MockUSDC usdc = new MockUSDC();
-      address usdcAddress = address(usdc);
+      underlyingToken = new MockUSDC();
+      address usdcAddress = address(underlyingToken);
 
       factory = new Factory();
       uint id = factory.deploy(
@@ -130,7 +130,7 @@ contract PBMTokenWrapperTest is Test {
       pbmTokenWrapper.safeTransferFrom(alice, bob, 2, 3, "");
 
       pbmLogic.setTransferable(false);
-      vm.expectRevert(bytes("Token is not transferable"));
+      vm.expectRevert(bytes("TokenWrapper: Token is not transferable"));
       pbmTokenWrapper.safeTransferFrom(alice, bob, 2, 2, "");
       
       pbmLogic.setTransferable(true);
@@ -153,10 +153,11 @@ contract PBMTokenWrapperTest is Test {
       
       // Setup
       pbmLogic.addToWhitelist(bob);
-      vm.prank(alice);
-      underlyingToken.mint(address(this), 1 * 10 ** underlyingToken.decimals());
+      assertEq(pbmLogic.isAddressWhitelisted(bob), true);
+      underlyingToken.mint(address(pbmTokenWrapper), 100000000);
 
       // When
+      vm.prank(alice);
       pbmTokenWrapper.setApprovalForAll(address(this), true);
       pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 1, "");
       
@@ -198,35 +199,35 @@ contract PBMTokenWrapperTest is Test {
     // }
 
     function testOnlyOwner() public {
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       pbmTokenWrapper.setPbmLogic(address(0));
       
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       pbmTokenWrapper.setPbmTokenManager(address(0));
       
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       pbmTokenWrapper.setUnderlyingToken(address(0));
       
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       pbmTokenWrapper.setURI("TESTURI");
       
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       pbmTokenWrapper.pause();
       
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       pbmTokenWrapper.unpause();
       
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       pbmTokenWrapper.mint(address(0x07865c6E87B9F70255377e024ace6630C1Eaa37F), 1, 1, "");
       
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       uint[] memory ids = new uint[](1);
       ids[0] = 1;

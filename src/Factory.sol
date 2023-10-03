@@ -21,8 +21,8 @@ contract Factory {
     bool _isTransferable, 
     address underlyingTokenAddress
   ) public returns (uint) {
-    address pbmTokenManagerAddress = address(new PBMTokenManager(_pbmExpiry, msg.sender));
     address pbmLogicAddress = address(new PBMLogic(_isTransferable, msg.sender));
+    address pbmTokenManagerAddress = address(new PBMTokenManager(_pbmExpiry, msg.sender));
     address pbmTokenWrapperAddress = address(
       new PBMTokenWrapper(
         pbmLogicAddress,
@@ -32,6 +32,7 @@ contract Factory {
         msg.sender
       )
     );
+    PBMTokenManager(pbmTokenManagerAddress).setTokenWrapperAddress(pbmTokenWrapperAddress);
     PBMToken memory newPBMToken = PBMToken(pbmTokenManagerAddress, pbmTokenWrapperAddress, pbmLogicAddress);
     _pbmTokens[count] = newPBMToken;
     count++;

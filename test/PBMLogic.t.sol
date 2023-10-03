@@ -40,19 +40,19 @@ contract PBMLogicTest is Test {
     }
 
     function testOnlyOwnerForSetTransferable() public {
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("Logic: Only owner can call this function."));
       vm.prank(address(0)); //changes function caller to 0 address
       pbmLogic.setTransferable(false);
     }
 
     function testOnlyOwnerForAddToWhitelist() public {
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("Logic: Only owner can call this function."));
       vm.prank(address(0)); 
       pbmLogic.addToWhitelist(address(this));
     }
 
     function testOnlyOwnerForRemoveFromWhitelist() public {
-      vm.expectRevert(bytes("Only owner can call this function."));
+      vm.expectRevert(bytes("Logic: Only owner can call this function."));
       vm.prank(address(0)); 
       pbmLogic.removeFromWhitelist(address(this));
     }

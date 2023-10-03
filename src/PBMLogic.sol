@@ -7,7 +7,7 @@ contract PBMLogic {
     address public owner;
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function.");
+        require(msg.sender == owner, "Logic: Only owner can call this function.");
         _;
     }
 
