@@ -8,12 +8,14 @@ contract FactoryTest is Test {
     Factory public factory;
 
     function setUp() public {
-        factory = new Factory(1896249508, true, address(0x07865c6E87B9F70255377e024ace6630C1Eaa37F));
+        factory = new Factory();
     }
 
     function testDeploy() public {
-        assertNotEq(factory.pbmLogicAddress(), address(0));
-        assertNotEq(factory.pbmTokenManagerAddress(), address(0));
-        assertNotEq(factory.pbmTokenWrapperAddress(), address(0));
+        uint id = factory.deploy(1896249508, true, address(0x07865c6E87B9F70255377e024ace6630C1Eaa37F));
+        assertNotEq(factory.getPBMToken(id).pbmLogicAddress, address(0));
+        assertNotEq(factory.getPBMToken(id).pbmTokenManagerAddress, address(0));
+        assertNotEq(factory.getPBMToken(id).pbmTokenWrapperAddress, address(0));
+        
     }
 }

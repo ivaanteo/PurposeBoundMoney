@@ -7,18 +7,23 @@ import "./PBMLogic.sol";
 
 contract Factory {
   
-  address public pbmTokenManagerAddress;
-  address public pbmTokenWrapperAddress;
-  address public pbmLogicAddress;
+  struct PBMToken {
+    address pbmTokenManagerAddress;
+    address pbmTokenWrapperAddress;
+    address pbmLogicAddress;
+  }
+
+  uint count;
+  mapping(uint => PBMToken) private _pbmTokens;
   
-  constructor(
+  function deploy(
     uint _pbmExpiry, 
     bool _isTransferable, 
     address underlyingTokenAddress
-    ) {
-    pbmTokenManagerAddress = address(new PBMTokenManager(_pbmExpiry, msg.sender));
-    pbmLogicAddress = address(new PBMLogic(_isTransferable, msg.sender));
-    pbmTokenWrapperAddress = address(
+  ) public returns (uint) {
+    address pbmTokenManagerAddress = address(new PBMTokenManager(_pbmExpiry, msg.sender));
+    address pbmLogicAddress = address(new PBMLogic(_isTransferable, msg.sender));
+    address pbmTokenWrapperAddress = address(
       new PBMTokenWrapper(
         pbmLogicAddress,
         pbmTokenManagerAddress,
@@ -27,5 +32,13 @@ contract Factory {
         msg.sender
       )
     );
+    PBMToken memory newPBMToken = PBMToken(pbmTokenManagerAddress, pbmTokenWrapperAddress, pbmLogicAddress);
+    _pbmTokens[count] = newPBMToken;
+    count++;
+    return count-1;
+  }
+
+  function getPBMToken (uint id) public view returns (PBMToken memory) {
+    return _pbmTokens[id];
   }
 }

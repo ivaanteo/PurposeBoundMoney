@@ -14,14 +14,15 @@ contract PBMTokenWrapperTest is Test {
     PBMTokenWrapper public pbmTokenWrapper;
 
     function setUp() public {
-        factory = new Factory(
+        factory = new Factory();
+        uint id = factory.deploy(
           1896249508, 
           true, 
           address(0x07865c6E87B9F70255377e024ace6630C1Eaa37F)
-          );
-        pbmLogic = PBMLogic(factory.pbmLogicAddress());
-        pbmTokenManager = PBMTokenManager(factory.pbmTokenManagerAddress());
-        pbmTokenWrapper = PBMTokenWrapper(factory.pbmTokenWrapperAddress());
+        );
+        pbmLogic = PBMLogic(factory.getPBMToken(id).pbmLogicAddress);
+        pbmTokenManager = PBMTokenManager(factory.getPBMToken(id).pbmTokenManagerAddress);
+        pbmTokenWrapper = PBMTokenWrapper(factory.getPBMToken(id).pbmTokenWrapperAddress);
     }
     
     function testMint() public {
@@ -137,14 +138,13 @@ contract PBMTokenWrapperTest is Test {
       ids[1] = 2;
       uint[] memory transferAmounts = new uint[](2);
       amounts[0] = 1;
-      amounts[1] = 1;
+      amounts[1] = 0;
       vm.prank(alice);
       pbmTokenWrapper.setApprovalForAll(address(this), true);
-      // vm.expectEmit();
-      // pbmTokenWrapper.safeBatchTransferFrom(alice, bob, transferIDs, transferAmounts, "");
-      // assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
+      pbmTokenWrapper.safeBatchTransferFrom(alice, bob, transferIDs, transferAmounts, "");
+      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
       // assertEq(pbmTokenWrapper.balanceOf(bob, 1), 1);
-      // assertEq(pbmTokenWrapper.balanceOf(alice, 2), 1);
+      // assertEq(pbmTokenWrapper.balanceOf(alice, 2), 2);
       // assertEq(pbmTokenWrapper.balanceOf(bob, 2), 1);
     }
 
