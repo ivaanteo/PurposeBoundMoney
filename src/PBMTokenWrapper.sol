@@ -128,7 +128,8 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
         require(
             from == _msgSender() || isApprovedForAll(from, _msgSender()),
             "ERC1155: caller is not token owner or approved"
-        );if(pbmLogicContract.isAddressWhitelisted(to)) {
+        );
+        if(pbmLogicContract.isAddressWhitelisted(to)) {
             // redemption logic
             _redeem(from, to, ids, amounts);
         } else {
