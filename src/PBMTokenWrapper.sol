@@ -149,7 +149,7 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
         require(_pbmExpiry > block.timestamp, "PBM has expired"); // pbm expiry
         uint totalValue;
         for (uint i = 0; i < ids.length; i++) {
-            require(!pbmTokenManagerContract.isTokenExpired(ids[i])); // token expiry   
+            require(!pbmTokenManagerContract.isTokenExpired(ids[i]), "Token expired"); // token expiry   
             totalValue += pbmTokenManagerContract.getTokenValue(ids[i], amounts[i]);
         }
         underlyingTokenContract.transfer(to, totalValue);
@@ -158,6 +158,4 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
             pbmTokenManagerContract.decreaseSupply(ids[i], amounts[i]);
         }
     }
-
-
 }

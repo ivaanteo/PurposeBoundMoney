@@ -4,9 +4,9 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract USDCClone is ERC20 {
-    constructor() ERC20("USDCClone", "USDC") {
-        _mint(msg.sender, 1000000 * 10 ** decimals());
+contract MockUSDC is ERC20 {
+    constructor() ERC20("MockUSDC", "USDC") {
+        _mint(msg.sender, 10000 * 10 ** decimals());
     }
 
     function decimals() public view virtual override returns (uint8) {

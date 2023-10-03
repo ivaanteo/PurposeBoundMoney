@@ -6,23 +6,43 @@ import {Factory} from "../src/Factory.sol";
 import {PBMTokenWrapper} from "../src/PBMTokenWrapper.sol";
 import {PBMTokenManager} from "../src/PBMTokenManager.sol";
 import {PBMLogic} from "../src/PBMLogic.sol";
+import {MockUSDC} from "./MockUSDC.sol";
 
 contract PBMTokenWrapperTest is Test {
     Factory public factory;
     PBMLogic public pbmLogic;
     PBMTokenManager public pbmTokenManager;
     PBMTokenWrapper public pbmTokenWrapper;
+    MockUSDC public underlyingToken;
 
     function setUp() public {
-        factory = new Factory();
-        uint id = factory.deploy(
-          1896249508, 
-          true, 
-          address(0x07865c6E87B9F70255377e024ace6630C1Eaa37F)
-        );
-        pbmLogic = PBMLogic(factory.getPBMToken(id).pbmLogicAddress);
-        pbmTokenManager = PBMTokenManager(factory.getPBMToken(id).pbmTokenManagerAddress);
-        pbmTokenWrapper = PBMTokenWrapper(factory.getPBMToken(id).pbmTokenWrapperAddress);
+      MockUSDC usdc = new MockUSDC();
+      address usdcAddress = address(usdc);
+
+      factory = new Factory();
+      uint id = factory.deploy(
+        1896249508, 
+        true, 
+        usdcAddress
+      );
+      pbmLogic = PBMLogic(factory.getPBMToken(id).pbmLogicAddress);
+      pbmTokenManager = PBMTokenManager(factory.getPBMToken(id).pbmTokenManagerAddress);
+      pbmTokenWrapper = PBMTokenWrapper(factory.getPBMToken(id).pbmTokenWrapperAddress);
+      
+      pbmTokenManager.createTokenType(
+      1,
+      2,
+      1896208, // expiry date in unix timestamp
+      "bobby",
+      "https://shitcoin.com"
+      );
+      pbmTokenManager.createTokenType(
+      2,
+      3,
+      1896208, // expiry date in unix timestamp
+      "charlie",
+      "https://shitcoin2.com"
+      );
     }
 
     function testMint() public {
@@ -117,6 +137,35 @@ contract PBMTokenWrapperTest is Test {
       pbmTokenWrapper.safeTransferFrom(alice, bob, 2, 2, "");
       assertEq(pbmTokenWrapper.balanceOf(alice, 2), 0);
       assertEq(pbmTokenWrapper.balanceOf(bob, 2), 2);
+    }
+
+    function testTransferFromWhenWhitelisted() public {
+      // Given
+      address alice = address(1);
+      address bob = address(2);
+      uint[] memory ids = new uint[](2);
+      ids[0] = 1;
+      ids[1] = 2;
+      uint[] memory amounts = new uint[](2);
+      amounts[0] = 1;
+      amounts[1] = 2;
+      pbmTokenWrapper.mintBatch(alice, ids, amounts, "");
+      
+      // Setup
+      pbmLogic.addToWhitelist(bob);
+      vm.prank(alice);
+      underlyingToken.mint(address(this), 1 * 10 ** underlyingToken.decimals());
+
+      // When
+      pbmTokenWrapper.setApprovalForAll(address(this), true);
+      pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 1, "");
+      
+      // Then
+      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
+      assertEq(pbmTokenWrapper.balanceOf(bob, 1), 0);
+      
+      // Tear Down
+      pbmLogic.removeFromWhitelist(bob);
     }
 
     // function testBatchTransferFrom() public {
