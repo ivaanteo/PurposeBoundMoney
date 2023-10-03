@@ -67,5 +67,10 @@ contract PBMTokenManagerTest is Test {
       assertEq(pbmTokenManager.getTokenType(id).amount, 1);
     }
 
+    function testGetTokenValue() public {
+      uint id = pbmTokenManager.createTokenType(4, 2, 0, "creator", "uri");
+      assertEq(pbmTokenManager.getTokenValue(id, 2), 8);
+    }
+
     
 }
