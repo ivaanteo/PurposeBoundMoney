@@ -18,9 +18,9 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
     uint private _pbmExpiry;
     address public owner;
 
-    modifier onlyTransferable() {
+    modifier onlyTransferable(address to) {
         require(
-            pbmLogicContract.isTransferable(), 
+            pbmLogicContract.isTransferable() || pbmLogicContract.isAddressWhitelisted(to), 
             "TokenWrapper: Token is not transferable"
         );
         _;
@@ -101,7 +101,7 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
         uint256 id,
         uint256 amount,
         bytes memory data
-    ) public virtual override onlyTransferable {
+    ) public virtual override onlyTransferable(to) {
         require(
             from == _msgSender() || isApprovedForAll(from, _msgSender()),
             "ERC1155: caller is not token owner or approved"
@@ -124,7 +124,7 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) public virtual override onlyTransferable {
+    ) public virtual override onlyTransferable(to) {
         require(
             from == _msgSender() || isApprovedForAll(from, _msgSender()),
             "ERC1155: caller is not token owner or approved"

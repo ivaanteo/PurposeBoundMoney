@@ -36,7 +36,7 @@ contract PBMTokenManager {
         tokenWrapperAddress = _tokenWrapperAddress;
     }
     function createTokenType(
-        uint denomination, // 
+        uint denomination, // value
         uint amount, // mint amount
         uint tokenExpiry, // expiry date in unix timestamp
         string calldata creator, 

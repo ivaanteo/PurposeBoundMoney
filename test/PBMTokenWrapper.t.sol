@@ -144,8 +144,8 @@ contract PBMTokenWrapperTest is Test {
       address alice = address(1);
       address bob = address(2);
       uint[] memory ids = new uint[](2);
-      ids[0] = 1;
-      ids[1] = 2;
+      ids[0] = 0;
+      ids[1] = 1;
       uint[] memory amounts = new uint[](2);
       amounts[0] = 1;
       amounts[1] = 2;
@@ -159,44 +159,55 @@ contract PBMTokenWrapperTest is Test {
       // When
       vm.prank(alice);
       pbmTokenWrapper.setApprovalForAll(address(this), true);
-      pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 1, "");
+      pbmTokenWrapper.safeTransferFrom(alice, bob, 0, 1, "");
       
       // Then
-      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
-      assertEq(pbmTokenWrapper.balanceOf(bob, 1), 0);
+      assertEq(pbmTokenWrapper.balanceOf(alice, 0), 0);
+      assertEq(pbmTokenWrapper.balanceOf(bob, 0), 0); // Bob's balance should be 0 since token is burnt
+      assertEq(underlyingToken.balanceOf(bob), 1);
       
       // Tear Down
       pbmLogic.removeFromWhitelist(bob);
     }
 
-    // function testBatchTransferFrom() public {
-    //   address alice = address(1);
-    //   address bob = address(2);
-    //   uint[] memory ids = new uint[](2);
-    //   ids[0] = 1;
-    //   ids[1] = 2;
-    //   uint[] memory amounts = new uint[](2);
-    //   amounts[0] = 1;
-    //   amounts[1] = 2;
-    //   pbmTokenWrapper.mintBatch(alice, ids, amounts, "");
+    function testBatchTransferFromWhenWhitelisted() public {
 
-    //   vm.expectRevert(bytes("ERC1155: caller is not token owner or approved"));
-    //   pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 1, "");
+    }
+
+    function testBatchTransferFrom() public {
+      address alice = address(1);
+      address bob = address(2);
+      uint[] memory ids = new uint[](2);
+      ids[0] = 1;
+      ids[1] = 2;
+      uint[] memory amounts = new uint[](2);
+      amounts[0] = 1;
+      amounts[1] = 2;
+      pbmTokenWrapper.mintBatch(alice, ids, amounts, "");
+      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 1);
+      assertEq(pbmTokenWrapper.balanceOf(alice, 2), 2);
+
+      uint[] memory transferIDs = new uint[](2);
+      ids[0] = 1;
+      ids[1] = 2;
+      uint[] memory transferAmounts = new uint[](2);
+      amounts[0] = 1;
+      amounts[1] = 0;
+      vm.expectRevert(bytes("ERC1155: caller is not token owner or approved"));
+      pbmTokenWrapper.safeBatchTransferFrom(alice, bob, transferIDs, transferAmounts, "");
       
-    //   uint[] memory transferIDs = new uint[](2);
-    //   ids[0] = 1;
-    //   ids[1] = 2;
-    //   uint[] memory transferAmounts = new uint[](2);
-    //   amounts[0] = 1;
-    //   amounts[1] = 0;
-    //   vm.prank(alice);
-    //   pbmTokenWrapper.setApprovalForAll(address(this), true);
-    //   pbmTokenWrapper.safeBatchTransferFrom(alice, bob, transferIDs, transferAmounts, "");
-    //   assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
-    //   // assertEq(pbmTokenWrapper.balanceOf(bob, 1), 1);
-    //   // assertEq(pbmTokenWrapper.balanceOf(alice, 2), 2);
-    //   // assertEq(pbmTokenWrapper.balanceOf(bob, 2), 1);
-    // }
+      vm.prank(alice);
+      pbmTokenWrapper.setApprovalForAll(address(this), true);
+      pbmTokenWrapper.safeBatchTransferFrom(alice, bob, transferIDs, transferAmounts, "");
+      console2.log("ALICE TOKEN 2 BALANCe", pbmTokenWrapper.balanceOf(alice, 2));
+      console2.log("ALICE TOKEN 1 BALANCe", pbmTokenWrapper.balanceOf(alice, 1));
+      console2.log("BOB TOKEN 1 BALANCe", pbmTokenWrapper.balanceOf(bob, 1));
+      console2.log("Bob TOKEN 2 BALANCe", pbmTokenWrapper.balanceOf(bob, 2));
+      // assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
+      // assertEq(pbmTokenWrapper.balanceOf(bob, 1), 1);
+      // assertEq(pbmTokenWrapper.balanceOf(alice, 2), 2);
+      // assertEq(pbmTokenWrapper.balanceOf(bob, 2), 1);
+    }
 
     function testOnlyOwner() public {
       vm.expectRevert(bytes("TokenWrapper: Only owner can call this function."));
