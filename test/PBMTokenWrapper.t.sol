@@ -153,6 +153,7 @@ contract PBMTokenWrapperTest is Test {
       
       // Setup
       pbmLogic.addToWhitelist(bob);
+      pbmLogic.setTransferable(false);
       assertEq(pbmLogic.isAddressWhitelisted(bob), true);
       underlyingToken.mint(address(pbmTokenWrapper), 100000000);
 
@@ -185,6 +186,7 @@ contract PBMTokenWrapperTest is Test {
 
       // Setup
       pbmLogic.addToWhitelist(bob);
+      pbmLogic.setTransferable(false);
       assertEq(pbmLogic.isAddressWhitelisted(bob), true);
       underlyingToken.mint(address(pbmTokenWrapper), 100000000);
 
