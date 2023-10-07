@@ -135,8 +135,6 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
         } else {
             _safeBatchTransferFrom(from, to, ids, amounts, data);
         }
-        
-        
     }
 
     function _redeem(
