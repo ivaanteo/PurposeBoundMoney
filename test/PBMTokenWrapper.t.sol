@@ -29,6 +29,8 @@ contract PBMTokenWrapperTest is Test {
       pbmTokenManager = PBMTokenManager(factory.getPBMToken(id).pbmTokenManagerAddress);
       pbmTokenWrapper = PBMTokenWrapper(factory.getPBMToken(id).pbmTokenWrapperAddress);
       
+      underlyingToken.mint(address(this), 100000000);
+      underlyingToken.approve(address(pbmTokenManager), 100000000);
       pbmTokenManager.createTokenType(
       1,
       2,
@@ -47,19 +49,22 @@ contract PBMTokenWrapperTest is Test {
 
     function testMint() public {
       address alice = address(1);
+      assertEq(pbmTokenWrapper.balanceOf(alice, 0), 0);
       assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
       
-      pbmTokenWrapper.mint(alice, 1, 1, "");
-      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 1);
+      pbmTokenWrapper.mint(alice, 0, 1, "");
+      assertEq(pbmTokenWrapper.balanceOf(alice, 0), 1);
+      assertEq(pbmTokenManager.getTokenType(0).amount, 1);
       
       pbmTokenWrapper.mint(alice, 1, 2, "");
-      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 3);
-      
-      assertEq(pbmTokenWrapper.balanceOf(alice, 2), 0);
+      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 2);
 
       address zero = address(0);
       vm.expectRevert(bytes("ERC1155: mint to the zero address"));
       pbmTokenWrapper.mint(zero, 1, 1, "");
+      
+      vm.expectRevert(bytes("TokenWrapper: Insufficient supply"));
+      pbmTokenWrapper.mint(alice, 0, 2, "");
     }
 
     function testMintBatch() public {
@@ -67,25 +72,30 @@ contract PBMTokenWrapperTest is Test {
       assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
 
       uint[] memory ids = new uint[](2);
-      ids[0] = 1;
-      ids[1] = 2;
+      ids[0] = 0;
+      ids[1] = 1;
       uint[] memory amounts = new uint[](2);
       amounts[0] = 1;
-      amounts[1] = 2;
+      amounts[1] = 1;
       pbmTokenWrapper.mintBatch(alice, ids, amounts, "");
+      assertEq(pbmTokenWrapper.balanceOf(alice, 0), 1);
       assertEq(pbmTokenWrapper.balanceOf(alice, 1), 1);
-      assertEq(pbmTokenWrapper.balanceOf(alice, 2), 2);
 
-      address zero = address(0);
-      vm.expectRevert(bytes("ERC1155: mint to the zero address"));
-      pbmTokenWrapper.mintBatch(zero, ids, amounts, "");
+      uint[] memory ids2 = new uint[](2);
+      ids2[0] = 0;
+      ids2[1] = 1;
+      uint[] memory amounts2 = new uint[](2);
+      amounts2[0] = 3;
+      amounts2[1] = 3;
+      vm.expectRevert(bytes("TokenWrapper: Insufficient supply"));
+      pbmTokenWrapper.mintBatch(alice, ids2, amounts2, "");
     }
 
     function testBurn() public {
       address alice = address(1);
       uint[] memory ids = new uint[](2);
-      ids[0] = 1;
-      ids[1] = 2;
+      ids[0] = 0;
+      ids[1] = 1;
       uint[] memory amounts = new uint[](2);
       amounts[0] = 1;
       amounts[1] = 2;
@@ -93,50 +103,50 @@ contract PBMTokenWrapperTest is Test {
 
       vm.prank(alice);
       pbmTokenWrapper.setApprovalForAll(address(this), true);
-      pbmTokenWrapper.burn(alice, 1, 1);
-      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
-      assertEq(pbmTokenWrapper.balanceOf(alice, 2), 2);
+      pbmTokenWrapper.burn(alice, 0, 1);
+      assertEq(pbmTokenWrapper.balanceOf(alice, 0), 0);
+      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 2);
 
       //increase totalSupply so error message below is correct
-      pbmTokenWrapper.mint(address(2), 2, 1, "");
+      pbmTokenWrapper.mint(address(2), 1, 1, "");
 
       vm.expectRevert(bytes("ERC1155: burn amount exceeds balance"));
-      pbmTokenWrapper.burn(alice, 2, 3);
+      pbmTokenWrapper.burn(alice, 1, 3);
     }
 
     function testTransferFrom() public {
       address alice = address(1);
       address bob = address(2);
       uint[] memory ids = new uint[](2);
-      ids[0] = 1;
-      ids[1] = 2;
+      ids[0] = 0;
+      ids[1] = 1;
       uint[] memory amounts = new uint[](2);
       amounts[0] = 1;
       amounts[1] = 2;
       pbmTokenWrapper.mintBatch(alice, ids, amounts, "");
 
       vm.expectRevert(bytes("ERC1155: caller is not token owner or approved"));
-      pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 1, "");
+      pbmTokenWrapper.safeTransferFrom(alice, bob, 0, 1, "");
 
       vm.prank(alice);
       pbmTokenWrapper.setApprovalForAll(address(this), true);
-      pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 1, "");
-      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
-      assertEq(pbmTokenWrapper.balanceOf(bob, 1), 1);
-      assertEq(pbmTokenWrapper.balanceOf(alice, 2), 2);
-      assertEq(pbmTokenWrapper.balanceOf(bob, 2), 0);
+      pbmTokenWrapper.safeTransferFrom(alice, bob, 0, 1, "");
+      assertEq(pbmTokenWrapper.balanceOf(alice, 0), 0);
+      assertEq(pbmTokenWrapper.balanceOf(bob, 0), 1);
+      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 2);
+      assertEq(pbmTokenWrapper.balanceOf(bob, 1), 0);
 
       vm.expectRevert(bytes("ERC1155: insufficient balance for transfer"));
-      pbmTokenWrapper.safeTransferFrom(alice, bob, 2, 3, "");
+      pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 3, "");
 
       pbmLogic.setTransferable(false);
       vm.expectRevert(bytes("TokenWrapper: Token is not transferable"));
-      pbmTokenWrapper.safeTransferFrom(alice, bob, 2, 2, "");
+      pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 2, "");
       
       pbmLogic.setTransferable(true);
-      pbmTokenWrapper.safeTransferFrom(alice, bob, 2, 2, "");
-      assertEq(pbmTokenWrapper.balanceOf(alice, 2), 0);
-      assertEq(pbmTokenWrapper.balanceOf(bob, 2), 2);
+      pbmTokenWrapper.safeTransferFrom(alice, bob, 1, 2, "");
+      assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
+      assertEq(pbmTokenWrapper.balanceOf(bob, 1), 2);
     }
 
     function testTransferFromWhenWhitelisted() public {
@@ -216,17 +226,17 @@ contract PBMTokenWrapperTest is Test {
         address bob = address(2);
         assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
         uint[] memory mintIDs = new uint[](2);
-        mintIDs[0] = 1;
-        mintIDs[1] = 2;
+        mintIDs[0] = 0;
+        mintIDs[1] = 1;
         uint[] memory mintAmounts = new uint[](2);
         mintAmounts[0] = 1;
         mintAmounts[1] = 1;
         pbmTokenWrapper.mintBatch(alice, mintIDs, mintAmounts, "");
+        assertEq(pbmTokenWrapper.balanceOf(alice, 0), 1);
         assertEq(pbmTokenWrapper.balanceOf(alice, 1), 1);
-        assertEq(pbmTokenWrapper.balanceOf(alice, 2), 1);
         uint[] memory ids = new uint[](2);
-        ids[0] = 1;
-        ids[1] = 2;
+        ids[0] = 0;
+        ids[1] = 1;
         uint[] memory amounts = new uint[](2);
         amounts[0] = 1;
         amounts[1] = 0;
@@ -238,10 +248,10 @@ contract PBMTokenWrapperTest is Test {
         pbmTokenWrapper.setApprovalForAll(address(this), true);
         pbmTokenWrapper.safeBatchTransferFrom(alice, bob, ids, amounts, "");
 
-        assertEq(pbmTokenWrapper.balanceOf(bob, 1), 1);
-        assertEq(pbmTokenWrapper.balanceOf(bob, 2), 0);
-        assertEq(pbmTokenWrapper.balanceOf(alice, 1), 0);
-        assertEq(pbmTokenWrapper.balanceOf(alice, 2), 1);
+        assertEq(pbmTokenWrapper.balanceOf(bob, 0), 1);
+        assertEq(pbmTokenWrapper.balanceOf(bob, 1), 0);
+        assertEq(pbmTokenWrapper.balanceOf(alice, 0), 0);
+        assertEq(pbmTokenWrapper.balanceOf(alice, 1), 1);
 
     }
 

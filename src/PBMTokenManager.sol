@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
+import "./PBMTokenWrapper.sol";
+
 struct TokenType {
         uint denomination;
         uint amount; // total supply
@@ -31,10 +33,12 @@ contract PBMTokenManager {
         owner = _owner;
         factory = msg.sender;
     }
+
     function setTokenWrapperAddress(address _tokenWrapperAddress) public {
         require(msg.sender == factory, "TokenManager: Only factory can call this function.");
         tokenWrapperAddress = _tokenWrapperAddress;
     }
+
     function createTokenType(
         uint denomination, // value
         uint amount, // mint amount
@@ -45,6 +49,11 @@ contract PBMTokenManager {
         public 
         onlyOwner 
         returns (uint256) {
+        // Owner should transfer underlying into TokenWrapper
+        uint totalValue = denomination * amount;
+        ERC20 underlyingToken = PBMTokenWrapper(tokenWrapperAddress).underlyingTokenContract();
+        underlyingToken.transferFrom(msg.sender, tokenWrapperAddress, totalValue);
+        
         TokenType memory newTokenType = TokenType(denomination, amount, tokenExpiry, creator, tokenURI);
         _tokenTypes.push(newTokenType);
         return _tokenTypes.length-1; // this is the token id
@@ -62,13 +71,20 @@ contract PBMTokenManager {
         return block.timestamp > pbmExpiry;   
     }
 
+    function sufficientSupply(uint tokenId, uint amount) public view returns (bool) {
+        return _tokenTypes[tokenId].amount >= amount;
+    }
+
     function increaseSupply(uint tokenId, uint amount) public onlyOwner {
+        uint totalValue = _tokenTypes[tokenId].denomination * amount;
+        ERC20 underlyingToken = PBMTokenWrapper(tokenWrapperAddress).underlyingTokenContract();
+        underlyingToken.transferFrom(msg.sender, tokenWrapperAddress, totalValue);
         _tokenTypes[tokenId].amount += amount;
     }
 
     function decreaseSupply(uint tokenId, uint amount) public {
         require(msg.sender == tokenWrapperAddress, "TokenManager: Only token wrapper can call this function.");
-        require(_tokenTypes[tokenId].amount >= amount);
+        require(_tokenTypes[tokenId].amount >= amount, "TokenManager: Insufficient supply");
         _tokenTypes[tokenId].amount -= amount;
     }
 

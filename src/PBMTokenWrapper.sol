@@ -11,9 +11,9 @@ import "./PBMTokenManager.sol";
 
 contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
     
-    PBMLogic pbmLogicContract; 
-    PBMTokenManager pbmTokenManagerContract;
-    ERC20 underlyingTokenContract;
+    PBMLogic public pbmLogicContract; 
+    PBMTokenManager public pbmTokenManagerContract;
+    ERC20 public underlyingTokenContract;
 
     uint private _pbmExpiry;
     address public owner;
@@ -74,16 +74,21 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
         public
         onlyOwner
     {
-        
-        // Call TokenManager's increaseSupply
+        require(!pbmTokenManagerContract.isTokenExpired(id), "TokenWrapper: Token expired");
+        require(pbmTokenManagerContract.sufficientSupply(id, amount), "TokenWrapper: Insufficient supply");
+        pbmTokenManagerContract.decreaseSupply(id, amount);
         _mint(account, id, amount, data);
-        
     }
 
     function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
         public
         onlyOwner
     {
+        for (uint i = 0; i < ids.length; i++) {
+            require(!pbmTokenManagerContract.isTokenExpired(ids[i]), "TokenWrapper: Token expired");
+            require(pbmTokenManagerContract.sufficientSupply(ids[i], amounts[i]), "TokenWrapper: Insufficient supply");
+            pbmTokenManagerContract.decreaseSupply(ids[i], amounts[i]);
+        }
         _mintBatch(to, ids, amounts, data);
     }
 
@@ -152,8 +157,5 @@ contract PBMTokenWrapper is ERC1155, Pausable, ERC1155Burnable, ERC1155Supply {
         }
         underlyingTokenContract.transfer(to, totalValue);
         burnBatch(from, ids, amounts);
-        for (uint i = 0; i < ids.length; i++) {
-            pbmTokenManagerContract.decreaseSupply(ids[i], amounts[i]);
-        }
     }
 }
