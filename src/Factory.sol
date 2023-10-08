@@ -46,4 +46,8 @@ contract Factory {
     require(id < _pbmTokens.length, "Factory: Invalid id");
     return _pbmTokens[id];
   }
+
+  function getAllPBMTokens() public view returns (PBMToken[] memory) {
+    return _pbmTokens;
+  }
 }

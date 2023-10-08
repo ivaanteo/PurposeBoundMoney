@@ -16,5 +16,7 @@ contract FactoryTest is Test {
         assertNotEq(factory.getPBMToken(id).pbmLogicAddress, address(0));
         assertNotEq(factory.getPBMToken(id).pbmTokenManagerAddress, address(0));
         assertNotEq(factory.getPBMToken(id).pbmTokenWrapperAddress, address(0));
+
+        assertEq(factory.getAllPBMTokens().length, 1);
     }
 }
