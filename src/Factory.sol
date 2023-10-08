@@ -14,13 +14,17 @@ contract Factory {
   }
 
   uint count;
-  mapping(uint => PBMToken) private _pbmTokens;
+  PBMToken[] private _pbmTokens;
   
   function deploy(
     uint _pbmExpiry, 
     bool _isTransferable, 
     address underlyingTokenAddress
   ) public returns (uint) {
+    require(_pbmExpiry > block.timestamp, "Factory: Invalid expiry");
+    require(underlyingTokenAddress != address(0), "Factory: Invalid underlying token address");
+    require(underlyingTokenAddress != address(this), "Factory: Invalid underlying token address");
+
     address pbmLogicAddress = address(new PBMLogic(_isTransferable, msg.sender));
     address pbmTokenManagerAddress = address(new PBMTokenManager(_pbmExpiry, msg.sender));
     address pbmTokenWrapperAddress = address(
@@ -34,12 +38,12 @@ contract Factory {
     );
     PBMTokenManager(pbmTokenManagerAddress).setTokenWrapperAddress(pbmTokenWrapperAddress);
     PBMToken memory newPBMToken = PBMToken(pbmTokenManagerAddress, pbmTokenWrapperAddress, pbmLogicAddress);
-    _pbmTokens[count] = newPBMToken;
-    count++;
-    return count-1;
+    _pbmTokens.push(newPBMToken);
+    return _pbmTokens.length - 1;
   }
 
   function getPBMToken (uint id) public view returns (PBMToken memory) {
+    require(id < _pbmTokens.length, "Factory: Invalid id");
     return _pbmTokens[id];
   }
 }
