@@ -17,7 +17,7 @@ contract PBMTokenManager {
     uint public pbmExpiry;
 
     // Private Variables
-    TokenType[] private _tokenTypes;
+    TokenType[] public _tokenTypes;
 
     address public owner;
     address public factory;
