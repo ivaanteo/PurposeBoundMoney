@@ -44,12 +44,15 @@ contract PBMTokenManagerTest is Test {
       assertEq(underlyingToken.balanceOf(address(pbmTokenWrapper)), 2);
       assertEq(underlyingToken.balanceOf(address(this)), 9998);
       
+      assertEq(pbmTokenManager.getTokenTypes().length, 1);
       assertEq(pbmTokenManager.getTokenType(id).denomination, 1);
       assertEq(pbmTokenManager.getTokenType(id).amount, 2);
       assertEq(pbmTokenManager.getTokenType(id).expiryDate, 0);
       assertEq(pbmTokenManager.getTokenType(id).creator, "creator");
       assertEq(pbmTokenManager.getTokenType(id).tokenURI, "uri");
       assertEq(pbmTokenManager.isTokenExpired(id), true);
+      pbmTokenManager.createTokenType(2, 4, 0, "creator", "uri");
+      assertEq(pbmTokenManager.getTokenTypes().length, 2);
     }
 
     function testIncreaseSupply() public {

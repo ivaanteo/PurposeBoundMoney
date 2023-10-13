@@ -17,7 +17,7 @@ contract PBMTokenManager {
     uint public pbmExpiry;
 
     // Private Variables
-    TokenType[] public _tokenTypes;
+    TokenType[] private _tokenTypes;
 
     address public owner;
     address public factory;
@@ -37,6 +37,10 @@ contract PBMTokenManager {
     function setTokenWrapperAddress(address _tokenWrapperAddress) public {
         require(msg.sender == factory, "TokenManager: Only factory can call this function.");
         tokenWrapperAddress = _tokenWrapperAddress;
+    }
+
+    function getTokenTypes() public view returns (TokenType[] memory) {
+        return _tokenTypes;
     }
 
     function createTokenType(
